@@ -20,7 +20,8 @@ setup(
         'numpy',
         'matplotlib',
         'pytest',
-        'pytest-cov'
+        'pytest-cov',
+        'codecov'
     ],
     python_requires='>=3.6',
     classifiers=[
