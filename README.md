@@ -1,11 +1,12 @@
 [![Build Status](https://travis-ci.com/falox/gym-adserver.svg?branch=master)](https://travis-ci.com/falox/gym-adserver)
 [![codecov](https://codecov.io/gh/falox/gym-adserver/branch/master/graph/badge.svg)](https://codecov.io/gh/falox/gym-adserver)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/gym-adserver.svg)](https://pypi.python.org/pypi/gym-adserver/)
 
 # gym-adserver
 
 `gym-adserver` is an [OpenAI Gym](https://github.com/openai/gym) environment for reinforcement learning-based online advertising algorithms.
 
-The `AdServer` environment implements a typical [multi-armed bandit problem](https://en.wikipedia.org/wiki/Multi-armed_bandit) where an [ad server](https://en.wikipedia.org/wiki/Ad_serving) must select one advertisement (ad) to display in a web page.
+The `AdServer` environment implements a typical [multi-armed bandit scenario](https://en.wikipedia.org/wiki/Multi-armed_bandit) where an [ad server](https://en.wikipedia.org/wiki/Ad_serving) must select one advertisement (ad) to display in a web page.
 
 Each time an ad is selected and displayed, it is counted as one [impression](https://en.wikipedia.org/wiki/Impression_(online_media)). A displayed ad can be clicked (reward = 1) or not (reward = 0), depending on the interest of the user.
 
@@ -31,6 +32,12 @@ cd gym-adserver
 pip install -e .
 ```
 
+Alternatively, you can install `gym-adserver` as a [pip package](https://pypi.org/project/gym-adserver/):
+
+```bash
+pip install gym-adserver
+```
+
 ## Basic Usage
 
 You can test the environment by running one of the built-in agents:
@@ -47,7 +54,7 @@ A window will open and show the agent's performance:
 
 The overall CTR increases over time, since the agent learns the best actions. 
 
-The "Actual CTR" is the probability for an ad to be clicked and it's known only by the environment. The "Observed CTR" is an estimate calculated by the agent and, with time, comes close to the actual.
+The "Actual CTR" is the probability for an ad to be clicked and it's known by the environment only. The "Observed CTR" is an estimate calculated by the agent and, with time, comes close to the actual.
 
 The most performant ads will receive more impressions.
 
@@ -60,7 +67,7 @@ The _gym_adserver/agents_ directory contains the agents implementing the followi
 - [Softmax](https://en.wikipedia.org/wiki/Softmax_function#Reinforcement_learning)
 - [UCB1](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search#Exploration_and_exploitation)
 
-Each agent has different parameters to adjust and optimize the associated algorithm.
+Each agent has different parameters to adjust and optimize its performance.
 
 You can use the built-in agents as a starting point to implement your own algorithm.
 
