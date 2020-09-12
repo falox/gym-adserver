@@ -1,8 +1,8 @@
 class Ad:
-    def __init__(self, id):
+    def __init__(self, id, impressions=0, clicks=0):
         self.id = str(id)
-        self.impressions = 0
-        self.clicks = 0
+        self.impressions = impressions
+        self.clicks = clicks
 
     def ctr(self):
         """Gets the CTR (Click-through rate) for this ad.
@@ -17,3 +17,6 @@ class Ad:
     
     def __str__(self):
         return "Ad: {0}, CTR: {1:.4f}".format(self.id, self.ctr())
+
+    def __eq__(self, other) : 
+        return self.id == other.id and self.impressions == other.impressions and self.clicks == other.clicks

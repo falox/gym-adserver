@@ -16,9 +16,10 @@ class AdServerEnv(gym.Env):
         'render.modes': ['human']
     }
 
-    def __init__(self, num_ads, time_series_frequency):        
+    def __init__(self, num_ads, time_series_frequency, reward_policy=None):        
         self.time_series_frequency = time_series_frequency        
         self.num_ads = num_ads
+        self.reward_policy = reward_policy
         self.click_probabilities = None
 
         # Initial state (can be reset later)
@@ -30,8 +31,8 @@ class AdServerEnv(gym.Env):
 
         # Environment OpenAI metadata
         self.reward_range = (0, 1)
-        self.action_space = spaces.Discrete(num_ads)
-        self.observation_space = spaces.Box(low=0.0, high=1.0, shape=(2, num_ads), dtype=np.float)                
+        self.action_space = spaces.Discrete(num_ads) # the id of the ad
+        self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(2, num_ads), dtype=np.float) # clicks and impressions, for each ad
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -134,7 +135,10 @@ class AdServerEnv(gym.Env):
             plt.pause(0.001)                 
 
     def draw_click(self, action):
-        if self.click_probabilities == None:
+        if self.reward_policy is not None:
+            return self.reward_policy(action)
+
+        if self.click_probabilities is None:
             self.click_probabilities = [self.np_random.uniform() * 0.5 for i in range(self.num_ads)]
 
         return 1 if self.np_random.uniform() <= self.click_probabilities[action] else 0
