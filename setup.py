@@ -8,5 +8,9 @@ setup(
         'gym',
         'numpy',
         'matplotlib'
-    ]
+    ],
+    tests_require=[
+        'pytest'
+    ],
+    python_requires='>=3.5'
 )
