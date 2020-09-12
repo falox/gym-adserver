@@ -34,7 +34,7 @@ class AdServerEnv(gym.Env):
         self.action_space = spaces.Discrete(num_ads) # the id of the ad
         self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(2, num_ads), dtype=np.float) # clicks and impressions, for each ad
 
-    def seed(self, seed=None):
+    def seed(self, seed=None): # pragma: no cover
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
@@ -70,7 +70,7 @@ class AdServerEnv(gym.Env):
         self.ctr_time_series = []
         return self.state
 
-    def render(self, mode='human', freeze=False, output_file=None):
+    def render(self, mode='human', freeze=False, output_file=None): # pragma: no cover
         if mode != 'human':
             raise NotImplementedError
 
