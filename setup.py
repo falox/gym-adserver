@@ -6,13 +6,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name='gym_adserver',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(),
     license='MIT',
-    description="An OpenAI gym environment for ad serving algorithms.",
+    description='An OpenAI gym environment for ad serving algorithms.',
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    author="Alberto Falossi",
+    long_description_content_type='text/markdown',
+    author='Alberto Falossi',
     url = 'https://github.com/falox/gym-adserver',
     keywords = ['openai', 'openai-gym', 'gym', 'environment', 'agent', 'rl', 'ads'],
     install_requires=[
