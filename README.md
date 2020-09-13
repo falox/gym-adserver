@@ -6,7 +6,7 @@
 
 `gym-adserver` is an [OpenAI Gym](https://github.com/openai/gym) environment for reinforcement learning-based online advertising algorithms.
 
-The `AdServer` environment implements a typical [multi-armed bandit scenario](https://en.wikipedia.org/wiki/Multi-armed_bandit) where an [ad server](https://en.wikipedia.org/wiki/Ad_serving) agent must select one advertisement (ad) to be display in a web page.
+The `AdServer` environment implements a typical [multi-armed bandit scenario](https://en.wikipedia.org/wiki/Multi-armed_bandit) where an [ad server](https://en.wikipedia.org/wiki/Ad_serving) agent must select the best advertisement (ad) to be displayed in a web page.
 
 Each time an ad is selected, it is counted as one [impression](https://en.wikipedia.org/wiki/Impression_(online_media)). A displayed ad can be clicked (reward = `1`) or not (reward = `0`), depending on the interest of the user The agent must maximize the overall [click-through rate](https://en.wikipedia.org/wiki/Click-through_rate).
 
