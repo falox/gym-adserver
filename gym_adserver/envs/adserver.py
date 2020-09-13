@@ -31,7 +31,7 @@ class AdServerEnv(gym.Env):
 
         # Environment OpenAI metadata
         self.reward_range = (0, 1)
-        self.action_space = spaces.Discrete(num_ads) # the id of the ad
+        self.action_space = spaces.Discrete(num_ads) # index of the selected ad
         self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(2, num_ads), dtype=np.float) # clicks and impressions, for each ad
 
     def seed(self, seed=None): # pragma: no cover
@@ -105,7 +105,7 @@ class AdServerEnv(gym.Env):
         plt.xlabel("Impressions")
         plt.yticks(x_pos, x)
 
-        # Plot CTRs
+        # Plot CTRs and probabilities
         plt.subplot2grid(grid_size, (2, 1), rowspan=3, colspan=1)
         x = [ad.id for ad in ads]
         y = [ad.ctr() for ad in ads]
@@ -113,10 +113,10 @@ class AdServerEnv(gym.Env):
         x_pos = [i for i, _ in enumerate(x)]
         x_pos_2 = [i + 0.4 for i, _ in enumerate(x)]
         plt.ylabel("Ads")
-        plt.xlabel("CTR")
+        plt.xlabel("")
         plt.yticks(x_pos, x)        
-        plt.barh(x_pos, y, 0.4, label='Observed')
-        plt.barh(x_pos_2, y_2, 0.4, label='Actual')
+        plt.barh(x_pos, y, 0.4, label='Actual CTR')
+        plt.barh(x_pos_2, y_2, 0.4, label='Probability')
         plt.legend(loc='upper right')
                 
         plt.tight_layout()
