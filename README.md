@@ -14,7 +14,7 @@ Each time an ad is selected, it is counted as one [impression](https://en.wikipe
 
 | Attribute | Value | Notes
 |--|--|--|
-| Action Space | Discrete(_n_) |  _n_ is the number of ads to choose from
+| Action Space | Discrete(n) |  n is the number of ads to choose from
 | Observation Space| Box(0, +inf, (2, n)) | Number of impressions and clicks for each ad
 | Actions | [0...n] | Index of the selected ad
 | Rewards | 0, 1 | 1 = clicked, 0 = not clicked
@@ -81,7 +81,7 @@ pytest -v
 
 - Extend AdServer with the concepts of _budget_ and _bid_
 - Extend AdServer to change the ad performance over time (currently the CTR is constant)
-- Implement [Q-learning](https://en.wikipedia.org/wiki/Q-learning) agents
+- Implement [Q-learning](https://en.wikipedia.org/wiki/Q-learning) [agents](https://medium.com/swlh/introduction-to-q-learning-with-openai-gym-2d794da10f3d)
 - Implement a meta-agent that exploits multiple sub-agents with different algorithms
 - Implement epsilon-Greedy variants
 - Implement an environment/wrapper to run and compare multiple agents
