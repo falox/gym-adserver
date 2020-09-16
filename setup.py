@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='gym_adserver',
-    version='0.1.2',
+    version='0.1.3',
     packages=find_packages(),
     license='MIT',
     description='An OpenAI gym environment for ad serving algorithms.',
