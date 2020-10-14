@@ -4,9 +4,7 @@
 
 # gym-adserver
 
-`gym-adserver` is an [OpenAI Gym](https://github.com/openai/gym) environment for reinforcement learning-based online advertising algorithms.
-
-`gym-adserver` is now one of the [official OpenAI environments](https://github.com/openai/gym/blob/master/docs/environments.md).
+`gym-adserver` is an [OpenAI Gym](https://github.com/openai/gym) environment for reinforcement learning-based online advertising algorithms. `gym-adserver` is now one of the [official OpenAI environments](https://github.com/openai/gym/blob/master/docs/environments.md).
 
 The `AdServer` environment implements a typical [multi-armed bandit scenario](https://en.wikipedia.org/wiki/Multi-armed_bandit) where an [ad server](https://en.wikipedia.org/wiki/Ad_serving) agent must select the best advertisement (ad) to be displayed in a web page.
 
