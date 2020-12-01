@@ -48,7 +48,7 @@ The environent will generate 10 (`num_ads`) ads with different performance rates
 
 A window will open and show the agent's performance and the environment's state:
 
-![](docs/ucb1.png)
+![Performance Dashboard](https://raw.githubusercontent.com/falox/gym-adserver/master/docs/ucb1.png)
 
 The overall CTR increases over time as the agent learns what the best actions are.
 
