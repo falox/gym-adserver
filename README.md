@@ -44,6 +44,12 @@ You can test the environment by running one of the built-in agents:
 python gym_adserver/agents/ucb1_agent.py --num_ads 10 --impressions 10000
 ```
 
+Or comparing multiple agents (defined in compare_agents.py):
+
+```bash
+python gym_adserver/wrappers/compare_agents.py --num_ads 10 --impressions 10000
+```
+
 The environent will generate 10 (`num_ads`) ads with different performance rates and the agent, without prior knowledge, will learn to select the most performant ones. The simulation will last 10000 iterations (`impressions`).
 
 A window will open and show the agent's performance and the environment's state:
@@ -84,4 +90,3 @@ pytest -v
 - Implement [Q-learning](https://en.wikipedia.org/wiki/Q-learning) [agents](https://medium.com/swlh/introduction-to-q-learning-with-openai-gym-2d794da10f3d)
 - Implement a meta-agent that exploits multiple sub-agents with different algorithms
 - Implement epsilon-Greedy variants
-- Implement an environment/wrapper to run and compare multiple agents
