@@ -17,6 +17,7 @@ setup(
     keywords = ['openai', 'openai-gym', 'gym', 'environment', 'agent', 'rl', 'ads'],
     install_requires=[
         'gym',
+        'joblib',
         'numpy',
         'matplotlib',
         'pytest',
