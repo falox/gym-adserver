@@ -77,7 +77,7 @@ class AdServerEnv(gym.Env):
         ads, impressions, clicks = self.state
         ctr = 0.0 if impressions == 0 else float(clicks / impressions)
 
-        logger.info('Impressions: {}, CTR: {}, Ads: {}'.format(impressions, ctr, ads))
+        logger.info('Scenario: {}, Impressions: {}, CTR: {}, Ads: {}'.format(self.scenario_name, impressions, ctr, ads))
 
         fig = plt.figure(num=self.scenario_name,figsize=(9, 6))
         grid_size = (5, 2)

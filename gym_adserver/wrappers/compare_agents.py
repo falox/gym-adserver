@@ -9,11 +9,16 @@ from gym_adserver.agents.random_agent import RandomAgent
 from gym_adserver.agents.softmax_agent import SoftmaxAgent
 from gym_adserver.agents.ucb1_agent import UCB1Agent
 
-
 def setup_environment(env_name, num_ads, time_series_frequency):
     env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency)
     env.seed(args.seed)
     return env
+
+def render_environment(env, i, **kwargs):
+    if kwargs['output_file'] is not None:
+        kwargs['output_file'] = str(i) + "_" + kwargs['output_file']
+    env.render(**kwargs)
+    env.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -39,11 +44,13 @@ if __name__ == '__main__':
         EpsilonGreedyAgent(seed=seed, epsilon=0.1),
     ]
 
-    # Simulation loop
     envs = []
     for agent in agents:
-        reward = 0
+        logger.info('Starting {}'.format(agent.name))
         env = setup_environment(env_name=args.env, num_ads=args.num_ads, time_series_frequency=time_series_frequency)
+
+        # Simulation loop
+        reward = 0
         observation = env.reset(agent.name)
         envs.append(env)
         for i in range(args.impressions):
@@ -53,4 +60,4 @@ if __name__ == '__main__':
 
     # Render result for each agent (NOTE: close all to quit)
     parallel = Parallel(n_jobs=-1)
-    parallel(delayed(env.render)(freeze=True, output_file=args.output_file) for env in envs)
+    parallel(delayed(render_environment)(env, i, freeze=True, output_file=args.output_file) for i, env in enumerate(envs))
