@@ -11,10 +11,10 @@ from gym import wrappers, logger
 import gym_adserver
 
 class EpsilonGreedyAgent(object):
-    def __init__(self, seed, espilon):
+    def __init__(self, seed, epsilon):
         self.name = "epsilon-Greedy Agent"
         self.np_random = RandomState(seed)
-        self.epsilon = espilon
+        self.epsilon = epsilon
 
     def act(self, observation, reward, done):
         ads, _, _ = observation
