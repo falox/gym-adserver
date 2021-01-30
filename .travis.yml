@@ -7,14 +7,17 @@ script:
 - pytest -v --cov-report term --cov=gym_adserver/envs
 after_success:
 - codecov
+before_deploy:
+  - python setup.py sdist bdist_wheel
+  - ls -l dist/
 deploy:
   provider: pypi
   user: "__token__"
   password:
     secure: "6fUSHZlvdzRh9YCVtF2PImQ6BL15StMxK6H2boLRhwj8S3RqAHUXzpBY7FLRR17BNvhAaQnRR5qhsRq0OTaUhYuYdrpqPPtItf933Ho8HcUJL5deAYjKBcRafJzugkZFxmYEFUCagVFCi/rrT/QNOHlDxQeEWn4vHHBATjQMXrmN4BSb9IQcVDpMbuSlzmdmIIBRMposPBvm/MyxqJ8QSK4fhss6yeytiHGcb6pPss07EXqgGColCjRUE3+kRTh8/Na7guZCZazC2IM0b+6EpQInSbHjjVUeG7GCCFgaHwp60Ht4VYd6S5yQHQOamOJNqL4hJRyVyJtVg0fnI5ZpDivAuV/OR08jjNT8FnON2t5ChvyWMly4tyrGdZCSWrEp4jf0enTmsAVXijwyjMna/Oodvpe2KPSAwitwiT48tWv769xZw5drXPg7RTrnpc8LCRbqAweg1wDcJl8a8GDVxfHaAdXZ4BH9m8a9e4TOBB9U9U3Jryc9CSI41AS+bmmGUxHxgbctBrBnoHNKq/GkqwlrFprkByAXTwTdSFYxmqBLlkM0/2+JEzFwFdxcoH9XuEeQeLv/9jmf5DK9d6960fFvhmRhSB0NhzsUrdLv8fRyc4YKavH48DZr4uxX1W4sPJ/ZBBCleLj//bQ5Gg6/KIR4VxHZNj0ryKTiG6c0BbE="
+  distributions: sdist bdist_wheel
+  skip_cleanup: true
   on:
     tags: true
     branch: master
-    distributions: bdist_wheel
     repo: falox/gym-adserver
-  skip_cleanup: 'true'
