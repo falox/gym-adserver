@@ -1,12 +1,20 @@
 language: python
 python:
-  - "3.6"
-
+- '3.6'
 install:
-  - pip install -e .
-
-script: 
-  - pytest -v --cov-report term --cov=gym_adserver/envs
-
+- pip install -e .
+script:
+- pytest -v --cov-report term --cov=gym_adserver/envs
 after_success:
-  - codecov
+- codecov
+deploy:
+  provider: pypi
+  user: falox
+  password:
+    secure: QRP+1FpajTpZ5Mgeno1EflGs7k+uqUj0eDAGmsdRYzUZWQvhL5Awie1vJxbsRwXoopJ7M9OdygK+WwhuwfJ4457yKfxtGFRlQvqt14i1TSoEzm9eA8rLeC/uAg8YaXHgCv3axdCUeSNkK72iTN4BkH6ren73ZHvZz9G5d6v2fMy1R80EMTCglUX8UA04xAJVfyZHZTLt8zVmkM0nxxUwClqpmXsLEJbdOb/+/mGrg/2wD4WoYP9/SyGsSMEqV0U2PfRwPuXZgqKisXDqdTV/Tk7RlwdUBugzRFtbM7nHe0wIg066mATRtODbKeU9QbuxmluJWvz+s7/MSCMlhRakAS5yTwZ2sO4w5yMezWNtmTJlIAsJGS80kLQHG9bzLlpWG583lbvpGsk86XkBD04vAiCt++vQn/ePYlVeFLTGTDqM2hid5gQmIGx7af2S6w3dCPOIVhiWlN2gykg6xm4kRbPta5+1vVWXlkb9mzkGYiZxhd0b37C5w2GJzpUSiBMYUd03jpC/yNoLcEcF7fTkW+u62FKoDXWlZ8yhdzDG+rmwfe4zayvS5LrbjDIrZry1aDsPdb6DGI4lpo5cN89LYiUo+1+QW2KA6xsIiYyJX4DUI0fdR8nY5DWkbuS4OybWd+vK9FJE0R+9E15MY6K+va75cNVFIfzJdyIjMuuhhHI=
+  on:
+    tags: true
+    branch: master
+    distributions: sdist bdist_wheel
+    repo: falox/gym-adserver
+  skip_cleanup: 'true'
