@@ -44,7 +44,6 @@ if __name__ == '__main__':
 
     # Setup the environment
     env = gym.make(args.env, num_ads=args.num_ads, time_series_frequency=time_series_frequency)
-    env.seed(args.seed)
 
     # Setup the agent
     agent = EpsilonGreedyAgent(args.seed, args.epsilon)
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     # Simulation loop
     reward = 0
     done = False
-    observation = env.reset(agent.name)
+    observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
         ad_index = agent.act(observation, reward, done)

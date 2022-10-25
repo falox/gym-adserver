@@ -1,3 +1,4 @@
+from typing import Optional
 import gym
 from gym import logger, spaces
 from gym.utils import seeding
@@ -34,10 +35,6 @@ class AdServerEnv(gym.Env):
         self.action_space = spaces.Discrete(num_ads) # index of the selected ad
         self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(2, num_ads), dtype=np.float) # clicks and impressions, for each ad
 
-    def seed(self, seed=None): # pragma: no cover
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
-
     def step(self, action):
         ads, impressions, clicks = self.state
 
@@ -60,12 +57,12 @@ class AdServerEnv(gym.Env):
 
         return self.state, reward, False, {}
 
-    def reset(self, scenario_name):
-        self.scenario_name = scenario_name
-
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
+        super().reset(seed=seed)
+        self.scenario_name = options["scenario_name"]
         ads = [Ad(i) for i in range(self.num_ads)]
         clicks = 0
-        impressions = 0                
+        impressions = 0
         self.state = (ads, impressions, clicks)
         self.ctr_time_series = []
         return self.state
