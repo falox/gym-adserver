@@ -12,7 +12,7 @@ from gym_adserver.agents.thompson_sampling_agent import TSAgent
 from gym_adserver.agents.etc_agent import ETCAgent
 
 def setup_environment(env_name, num_ads, time_series_frequency):
-    env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency)
+    env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency, seed=seed)
     env.seed(args.seed)
     return env
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     agents = [
         RandomAgent(action_space=action_space),
         SoftmaxAgent(seed=seed, beta=5, max_impressions=max_impressions),
-        UCB1Agent(action_space=action_space, seed=args.seed, c=2, max_impressions=max_impressions),
+        UCB1Agent(action_space=action_space, seed=seed, c=2, max_impressions=max_impressions),
         EpsilonGreedyAgent(seed=seed, epsilon=0.1),
         TSAgent(action_space=action_space,seed=seed),
         ETCAgent(action_space=action_space,seed=seed,exploration_rounds=100)

@@ -12,21 +12,28 @@ import matplotlib.pyplot as plt
 matplotlib.rcParams['toolbar'] = 'None'
 
 from .ad import Ad
+from .user import User
+
+AD_TYPES = ['car', 'food', 'electronics', 'clothing']
 
 class AdServerEnv(gym.Env):
     metadata = {
         'render.modes': ['human']
     }
 
-    def __init__(self, num_ads, time_series_frequency, reward_policy=None, budgets=None):        
+    def __init__(self, num_ads, time_series_frequency, reward_policy=None, budgets=None, seed=None):        
         self.time_series_frequency = time_series_frequency        
         self.num_ads = num_ads
         self.reward_policy = reward_policy
+        self.max_impressions = 300
+        self.seed(seed)
+        
         self.click_probabilities = [None] * num_ads
         self.bids = [None] * num_ads
         self.budgets = [None] * num_ads
         self.ads = [None] * num_ads
         self.revenues = [None] * num_ads
+        self.types = [None] * num_ads
         
         self.np_random = np.random.default_rng()
 
@@ -42,25 +49,45 @@ class AdServerEnv(gym.Env):
         self.reward_range = (0, 1)
         self.action_space = spaces.Discrete(num_ads) # index of the selected ad
         self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(2, num_ads), dtype=np.float) # clicks and impressions, for each ad
-
+            
     def _generate_ads(self):
-        min_ctr = 0.1
-        max_ctr = 0.5
-        min_bid = 0.01
-        max_bid = 1.00
-        min_budget = 1000
-        max_budget = 10000
         for i in range(self.num_ads):
-            click_probability = self.np_random.uniform(min_ctr, max_ctr)
-            bid = self.np_random.uniform(min_bid, max_bid)
-            budget = self.np_random.uniform(min_budget, max_budget)
-            ad = Ad(click_probability=click_probability, id=i, bid=bid, budget=budget)
+            ad_type = self.np_random.choice(AD_TYPES)
+            click_probability = self.get_ad_type_click_probability(ad_type, 0)
+            bid = self._generate_bid()
+            budget = self._generate_budget()
+            ad = Ad(id=i, click_probability=click_probability, bid=bid, budget=budget, type=ad_type)
             
             self.ads[i] = ad
             self.bids[i] = bid
             self.click_probabilities[i] = click_probability
             self.budgets[i] = budget
             self.revenues[i] = ad.revenue
+            self.types[i] = ad.type
+
+    def _generate_bid(self):
+        # Your custom logic to generate bid based on ad_type
+        return self.np_random.uniform(0.01, 1)
+
+    def _generate_budget(self):
+        # Your custom logic to generate budget based on ad_type
+        return self.np_random.uniform(1000, 10000)
+
+    def get_current_time_of_day(self):
+        _, impressions, _ = self.state
+        time_of_day = impressions / self.max_impressions
+        return time_of_day
+
+    def get_ad_type_click_probability(self, ad_type, time_of_day):
+        # Define continuous functions for click probabilities depending on ad_type and time_of_day
+        if ad_type == 'car':
+            return 0.245 * np.sin(2 * np.pi * time_of_day - np.pi) + 0.255
+        elif ad_type == 'food':
+            return 0.245 * np.sin(4 * np.pi * time_of_day) + 0.255
+        elif ad_type == 'electronics':
+            return 0.245 * np.sin(6 * np.pi * time_of_day - 0.5 * - np.pi) + 0.255
+        elif ad_type == 'clothing':
+            return 0.245 * np.sin(8 * np.pi * time_of_day) + 0.255
     
     def step(self, action):
         ads, impressions, clicks = self.state
@@ -71,6 +98,12 @@ class AdServerEnv(gym.Env):
         
         # Deduct the cost of the click from the budget for the selected ad
         self.budgets[action] -= self.bids[action]
+        
+        # Update click probabilities
+        for ad in ads:
+            time_of_day = self.get_current_time_of_day()
+            new_click_probability = self.get_ad_type_click_probability(ad.type, time_of_day)
+            ad.update_click_probability(new_click_probability)
 
         # Update clicks (if any)
         reward = self.draw_click(action)
@@ -97,8 +130,9 @@ class AdServerEnv(gym.Env):
 
         return self.state, reward, False, {}
     
-    def seed(self, seed: Optional[int] = None) -> None:
+    def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
+        np.random.seed(seed)
         return [seed]
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
@@ -198,8 +232,10 @@ class AdServerEnv(gym.Env):
 
         if self.click_probabilities == [None] * self.num_ads:
             self.click_probabilities = [self.np_random.uniform() * 0.5 for i in range(self.num_ads)]
-
-        return 1 if self.np_random.uniform() <= self.click_probabilities[action] else 0
+            
+        time_of_day = self.get_current_time_of_day()
+        click_probability = self.get_ad_type_click_probability(self.types[action], time_of_day)
+        return np.random.random() < click_probability
 
     def close(self):
         plt.close()

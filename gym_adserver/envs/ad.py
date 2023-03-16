@@ -1,10 +1,14 @@
 class Ad:
-    def __init__(self, click_probability, id, bid, budget, impressions=0, clicks=0):
+    def __init__(self, click_probability, id, bid, budget, type, impressions=0, clicks=0):
         self.id = str(id)
         self.impressions = impressions
         self.clicks = clicks
         self.bid = bid
         self.budget = budget
+        self.type = type
+        self.click_probability = click_probability
+        
+    def update_click_probability(self, click_probability):
         self.click_probability = click_probability
 
     def ctr(self):
