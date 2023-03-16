@@ -59,7 +59,7 @@ if __name__ == '__main__':
         envs.append(env)
         for i in range(args.impressions):
             # Action/Feedback
-            ad_index = agent.act(observation=observation, reward=reward, done=False)
+            ad_index = agent.act(observation=observation, reward=reward, done=False, ad_budgets = env.budgets)
             observation, reward, _, _ = env.step(ad_index)
 
     # Render result for each agent (NOTE: close all to quit)

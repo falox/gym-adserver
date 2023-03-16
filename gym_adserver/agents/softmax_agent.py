@@ -17,7 +17,7 @@ class SoftmaxAgent(object):
         self.beta = beta
         self.max_impressions = max_impressions
 
-    def act(self, observation, reward, done):
+    def act(self, observation, reward, done, ad_budgets):
         ads, current_impressions, _ = observation
 
         # Compute the temperature
@@ -27,7 +27,13 @@ class SoftmaxAgent(object):
         # Softmax
         ctrs = [ad.ctr() for ad in ads]
         exponentials = np.exp((ctrs - np.max(ctrs)) / temperature) # the -max is for numerical stability, https://stackoverflow.com/a/40756996
-        probabilities = exponentials / sum(exponentials)
+
+        # Set the probability of choosing ads with exhausted budgets to zero
+        probabilities = [exponential if ad_budgets[i] > 0 else 0 for i, exponential in enumerate(exponentials)]
+        if sum(probabilities) != 0:
+            probabilities /= sum(probabilities)
+        else:
+            return None
 
         # Weighted random selection
         action = self.np_random.choice(np.arange(len(ads)), p=probabilities)
@@ -60,7 +66,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        ad_index = agent.act(observation, reward, done)
+        ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
         
         # Render the current state

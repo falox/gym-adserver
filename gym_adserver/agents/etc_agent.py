@@ -23,8 +23,12 @@ class ETCAgent(object):
         self.prev_action = None
         self.rewards = []
 
-    def act(self, observation, reward, done):
+    def act(self, observation, reward, done, ad_budgets):
         ads, impressions, _ = observation
+        
+        # If all ad budgets are exhausted, return None
+        if all(budget <= 0 for budget in ad_budgets):
+            return None
 
         # Update the value for the action of the previous act() call
         if self.prev_action is not None:
@@ -34,14 +38,17 @@ class ETCAgent(object):
             self.values[self.prev_action] = new_value
             self.rewards.append(reward)
 
-        # During the exploration phase, select each ad a fixed number of times
+        # During the exploration phase, select each ad with available budget a fixed number of times
         for ad in ads:
-            if ad.impressions < self.exploration_rounds:
-                self.prev_action = ads.index(ad)
+            ad_index = ads.index(ad)
+            if ad.impressions < self.exploration_rounds and ad_budgets[ad_index] > 0:
+                self.prev_action = ad_index
                 return self.prev_action
 
         # After the exploration phase, commit to the ad with the highest estimated value
-        self.prev_action = self.values.index(max(self.values))
+        # with a non-exhausted budget
+        available_values = [value if ad_budgets[i] > 0 else float('-inf') for i, value in enumerate(self.values)]
+        self.prev_action = available_values.index(max(available_values))
         return self.prev_action
     
 def compute_regret(agent, env, num_impressions):
@@ -94,7 +101,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        ad_index = agent.act(observation, reward, done)
+        ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
         ETC_agent_regret = compute_regret(agent, env, i)
         print("Regret for ETC agent:", ETC_agent_regret)

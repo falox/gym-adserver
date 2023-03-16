@@ -17,30 +17,35 @@ stationary=True
 class TSAgent(object):
     def __init__(self, action_space, seed):
         self.name = "TS Agent"
-        self.alpha = [1] * action_space.n
-        self.beta = [1] * action_space.n
+        self.successes = [0] * action_space.n
+        self.failures = [0] * action_space.n
         self.np_random = np.random.RandomState(seed)
         self.prev_action = None
         self.rewards = []
 
-    def act(self, observation, reward, done):
+    def act(self, observation, reward, done, ad_budgets):
         ads, _, _ = observation
+        
+        # If all ad budgets are exhausted, return None
+        if all(budget <= 0 for budget in ad_budgets):
+            return None
 
-        # Update the alpha and beta values for the action of the previous act() call
+        # Update the successes and failures for the action of the previous act() call
         if self.prev_action is not None:
-            if reward == 1:
-                self.alpha[self.prev_action] += 1
+            self.successes[self.prev_action] += reward
+            self.failures[self.prev_action] += 1 - reward
+
+        # Select the ad with the highest sampled beta value and available budget
+        sampled_values = [0.0] * len(ads)
+        for i, ad in enumerate(ads):
+            if ad_budgets[i] > 0:
+                a = self.successes[i] + 1
+                b = self.failures[i] + 1
+                sampled_values[i] = self.np_random.beta(a, b)
             else:
-                self.beta[self.prev_action] += 1
-                
-            # Store the reward received at this step
-            self.rewards.append(reward)
+                sampled_values[i] = float('-inf')
 
-        # Sample the expected CTRs for all ads using the current alpha and beta values
-        sampled_values = [self.np_random.beta(self.alpha[i], self.beta[i]) for i in range(len(ads))]
-
-        # Select the ad with the highest sampled value
-        self.prev_action = np.argmax(sampled_values)
+        self.prev_action = sampled_values.index(max(sampled_values))
         return self.prev_action
     
 def compute_regret(agent, env, num_impressions):
@@ -93,7 +98,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        ad_index = agent.act(observation, reward, done)
+        ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
         thompson_agent_regret = compute_regret(agent, env, i)
         print("Regret for Thompson Sampling agent:", thompson_agent_regret)

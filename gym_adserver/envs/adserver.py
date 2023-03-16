@@ -17,7 +17,7 @@ class AdServerEnv(gym.Env):
         'render.modes': ['human']
     }
 
-    def __init__(self, num_ads, time_series_frequency, reward_policy=None):        
+    def __init__(self, num_ads, time_series_frequency, reward_policy=None, budgets=None):        
         self.time_series_frequency = time_series_frequency        
         self.num_ads = num_ads
         self.reward_policy = reward_policy
@@ -29,6 +29,10 @@ class AdServerEnv(gym.Env):
         impressions = 0
         self.state = (ads, impressions, clicks)
         self.ctr_time_series = []
+        
+        if budgets is None:
+            budgets = [10000] * num_ads
+        self.budgets = budgets
 
         # Environment OpenAI metadata
         self.reward_range = (0, 1)
@@ -37,6 +41,13 @@ class AdServerEnv(gym.Env):
 
     def step(self, action):
         ads, impressions, clicks = self.state
+        
+        if action is None:
+            # All ad budgets are exhausted, terminate the episode
+            return self.state, 0, True, {}
+        
+        # Deduct the cost of the impression from the budget for the selected ad
+        self.budgets[action] -= 1
 
         # Update clicks (if any)
         reward = self.draw_click(action)

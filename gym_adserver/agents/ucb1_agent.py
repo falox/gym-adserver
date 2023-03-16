@@ -22,8 +22,12 @@ class UCB1Agent(object):
         self.prev_action = None
         self.rewards = []
 
-    def act(self, observation, reward, done):
+    def act(self, observation, reward, done, ad_budgets):
         ads, impressions, _ = observation
+        
+        # If all ad budgets are exhausted, return None
+        if all(budget <= 0 for budget in ad_budgets):
+            return None
 
         # Update the value for the action of the previous act() call
         if self.prev_action != None:            
@@ -34,17 +38,22 @@ class UCB1Agent(object):
             self.rewards.append(reward)    
         
         # Test each ad once
+        ad_index = 0
         for ad in ads:
-            if ad.impressions == 0:
+            if ad.impressions == 0 and ad_budgets[ad_index] > 0:
                 self.prev_action = ads.index(ad)
                 return self.prev_action
+            ad_index += 1
 
         # Compute the UCB values
         ucb_values = [0.0] * len(self.values)
         for i in range(len(ads)):
-            exploitation = self.values[i]
-            exploration = self.c * math.sqrt((math.log(impressions)) / float(ads[i].impressions))
-            ucb_values[i] = exploitation + exploration
+            if ad_budgets[i] > 0:
+                exploitation = self.values[i]
+                exploration = self.c * math.sqrt((math.log(impressions)) / float(ads[i].impressions))
+                ucb_values[i] = exploitation + exploration
+            else:
+                ucb_values[i] = float('-inf')
 
         # Select the max UCB value
         self.prev_action = ucb_values.index(max(ucb_values))
@@ -99,7 +108,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        ad_index = agent.act(observation, reward, done)
+        ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
         UCB_agent_regret = compute_regret(agent, env, i)
         print("Regret for UCB Sampling agent:", UCB_agent_regret)

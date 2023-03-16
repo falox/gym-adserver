@@ -13,8 +13,15 @@ class RandomAgent(object):
         self.name = "Random Agent"
         self.action_space = action_space
 
-    def act(self, observation, reward, done):
-        return self.action_space.sample()
+    def act(self, observation, reward, done, ad_budgets):
+        # If all ad budgets are exhausted, return None
+        if all(budget <= 0 for budget in ad_budgets):
+            return None
+        
+        sample = self.action_space.sample()
+        while ad_budgets[sample] <=0:
+            sample = self.action_space.sample()
+        return sample
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -41,7 +48,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        action = agent.act(observation, reward, done)
+        action = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(action)
         
         # Render the current state
