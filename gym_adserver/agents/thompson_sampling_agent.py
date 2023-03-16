@@ -5,51 +5,44 @@ import math
 
 import numpy as np
 from numpy.random.mtrand import RandomState
+from scipy.stats import beta
 
 import gym
 from gym import wrappers, logger
 
 import gym_adserver
 
-class UCB1Agent(object):
-    def __init__(self, action_space, seed, c, max_impressions):
-        self.name = "UCB1 Agent"
-        self.values = [0.00] * action_space.n
-        self.np_random = RandomState(seed)
-        # Exploration parameter
-        self.c = c
-        self.max_impressions = max_impressions
+stationary=True
+
+class TSAgent(object):
+    def __init__(self, action_space, seed):
+        self.name = "TS Agent"
+        self.alpha = [1] * action_space.n
+        self.beta = [1] * action_space.n
+        self.np_random = np.random.RandomState(seed)
         self.prev_action = None
         self.rewards = []
 
     def act(self, observation, reward, done):
-        ads, impressions, _ = observation
+        ads, _, _ = observation
 
-        # Update the value for the action of the previous act() call
-        if self.prev_action != None:            
-            n = ads[self.prev_action].impressions
-            value = self.values[self.prev_action]
-            new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward
-            self.values[self.prev_action] = new_value    
-            self.rewards.append(reward)    
-        
-        # Test each ad once
-        for ad in ads:
-            if ad.impressions == 0:
-                self.prev_action = ads.index(ad)
-                return self.prev_action
+        # Update the alpha and beta values for the action of the previous act() call
+        if self.prev_action is not None:
+            if reward == 1:
+                self.alpha[self.prev_action] += 1
+            else:
+                self.beta[self.prev_action] += 1
+                
+            # Store the reward received at this step
+            self.rewards.append(reward)
 
-        # Compute the UCB values
-        ucb_values = [0.0] * len(self.values)
-        for i in range(len(ads)):
-            exploitation = self.values[i]
-            exploration = self.c * math.sqrt((math.log(impressions)) / float(ads[i].impressions))
-            ucb_values[i] = exploitation + exploration
+        # Sample the expected CTRs for all ads using the current alpha and beta values
+        sampled_values = [self.np_random.beta(self.alpha[i], self.beta[i]) for i in range(len(ads))]
 
-        # Select the max UCB value
-        self.prev_action = ucb_values.index(max(ucb_values))
+        # Select the ad with the highest sampled value
+        self.prev_action = np.argmax(sampled_values)
         return self.prev_action
-
+    
 def compute_regret(agent, env, num_impressions):
     """
     Computes the regret for the given agent in the gym-adserver environment.
@@ -73,6 +66,7 @@ def compute_regret(agent, env, num_impressions):
 
     return regret
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', default='AdServer-v0')
@@ -91,7 +85,7 @@ if __name__ == '__main__':
     env = gym.make(args.env, num_ads=args.num_ads, time_series_frequency=time_series_frequency)
 
     # Setup the agent
-    agent = UCB1Agent(env.action_space, args.seed, args.c, args.impressions)
+    agent = TSAgent(env.action_space, args.seed)
 
     # Simulation loop
     reward = 0
@@ -101,8 +95,8 @@ if __name__ == '__main__':
         # Action/Feedback
         ad_index = agent.act(observation, reward, done)
         observation, reward, done, _ = env.step(ad_index)
-        UCB_agent_regret = compute_regret(agent, env, i)
-        print("Regret for UCB Sampling agent:", UCB_agent_regret)
+        thompson_agent_regret = compute_regret(agent, env, i)
+        print("Regret for Thompson Sampling agent:", thompson_agent_regret)
         
         # Render the current state
         observedImpressions = observation[1]

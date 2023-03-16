@@ -8,6 +8,8 @@ from gym_adserver.agents.epsilon_greedy_agent import EpsilonGreedyAgent
 from gym_adserver.agents.random_agent import RandomAgent
 from gym_adserver.agents.softmax_agent import SoftmaxAgent
 from gym_adserver.agents.ucb1_agent import UCB1Agent
+from gym_adserver.agents.thompson_sampling_agent import TSAgent
+from gym_adserver.agents.etc_agent import ETCAgent
 
 def setup_environment(env_name, num_ads, time_series_frequency):
     env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency)
@@ -42,6 +44,8 @@ if __name__ == '__main__':
         SoftmaxAgent(seed=seed, beta=5, max_impressions=max_impressions),
         UCB1Agent(action_space=action_space, seed=args.seed, c=2, max_impressions=max_impressions),
         EpsilonGreedyAgent(seed=seed, epsilon=0.1),
+        TSAgent(action_space=action_space,seed=seed),
+        ETCAgent(action_space=action_space,seed=seed,exploration_rounds=100)
     ]
 
     envs = []
@@ -51,7 +55,7 @@ if __name__ == '__main__':
 
         # Simulation loop
         reward = 0
-        observation = env.reset(agent.name)
+        observation = env.reset(options={"scenario_name": agent.name})
         envs.append(env)
         for i in range(args.impressions):
             # Action/Feedback
