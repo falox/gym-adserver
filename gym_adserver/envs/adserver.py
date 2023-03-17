@@ -4,7 +4,6 @@ from gym import logger, spaces
 from gym.utils import seeding
 
 import numpy as np
-import time
 from numpy.random.mtrand import RandomState
 
 import matplotlib
@@ -21,12 +20,17 @@ class AdServerEnv(gym.Env):
         'render.modes': ['human']
     }
 
-    def __init__(self, num_ads, time_series_frequency, reward_policy=None, budgets=None, seed=None):        
+    def __init__(self, num_ads, time_series_frequency, users=None, reward_policy=None, budgets=None, seed=None):        
         self.time_series_frequency = time_series_frequency        
         self.num_ads = num_ads
         self.reward_policy = reward_policy
         self.max_impressions = 300
-        self.seed(seed)
+        self.seed_value = seed
+        self.seed(seed=self.seed_value)
+        self.ads_random = np.random.default_rng(seed)
+        
+        self.users = [User(['car', 'electronics'], np_random=self.ads_random),
+                      User(['food', 'clothing'], np_random=self.ads_random)]
         
         self.click_probabilities = [None] * num_ads
         self.bids = [None] * num_ads
@@ -35,7 +39,6 @@ class AdServerEnv(gym.Env):
         self.revenues = [None] * num_ads
         self.types = [None] * num_ads
         
-        self.np_random = np.random.default_rng()
 
         # Initial state (can be reset later)
         self._generate_ads()
@@ -52,7 +55,7 @@ class AdServerEnv(gym.Env):
             
     def _generate_ads(self):
         for i in range(self.num_ads):
-            ad_type = self.np_random.choice(AD_TYPES)
+            ad_type = self.ads_random.choice(AD_TYPES)
             click_probability = self.get_ad_type_click_probability(ad_type, 0)
             bid = self._generate_bid()
             budget = self._generate_budget()
@@ -67,11 +70,11 @@ class AdServerEnv(gym.Env):
 
     def _generate_bid(self):
         # Your custom logic to generate bid based on ad_type
-        return self.np_random.uniform(0.01, 1)
+        return self.ads_random.uniform(0.01, 1)
 
     def _generate_budget(self):
         # Your custom logic to generate budget based on ad_type
-        return self.np_random.uniform(1000, 10000)
+        return self.ads_random.uniform(1000, 10000)
 
     def get_current_time_of_day(self):
         _, impressions, _ = self.state
@@ -100,9 +103,11 @@ class AdServerEnv(gym.Env):
         self.budgets[action] -= self.bids[action]
         
         # Update click probabilities
+        # Select a random user
+        user = self.ads_random.choice(self.users)
         for ad in ads:
             time_of_day = self.get_current_time_of_day()
-            new_click_probability = self.get_ad_type_click_probability(ad.type, time_of_day)
+            new_click_probability = self.get_ad_type_click_probability(ad.type, time_of_day) + user.bonus_click_probabilities[ad.type]
             ad.update_click_probability(new_click_probability)
 
         # Update clicks (if any)
@@ -132,12 +137,9 @@ class AdServerEnv(gym.Env):
     
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
-        np.random.seed(seed)
         return [seed]
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
-        if seed is None:
-            seed = int(time.time())
         self.seed(seed)
         self.scenario_name = options["scenario_name"]
         self._generate_ads()
@@ -203,7 +205,7 @@ class AdServerEnv(gym.Env):
         x = [i for i, _ in enumerate(self.revenue_time_series)]
         y = self.revenue_time_series
         axes = plt.gca()
-        axes.set_ylim([0,4000])
+        axes.set_ylim([0,1500])
         plt.xticks(x, [(i + 1) * self.time_series_frequency for i, _ in enumerate(x)])
         plt.ylabel("Revenue")
         plt.xlabel("Impressions")
@@ -217,25 +219,22 @@ class AdServerEnv(gym.Env):
             fig.savefig(output_file)
 
         if freeze:
-            # Keep the plot window open
-            # https://stackoverflow.com/questions/13975756/keep-a-figure-on-hold-after-running-a-script
-            if matplotlib.is_interactive(): 
+            if matplotlib.is_interactive():
                 plt.ioff()
             plt.show(block=True)
         else:
             plt.show(block=False)
-            plt.pause(0.001)                 
+            plt.pause(self.np_random.uniform(0.001, 0.1))  # Use the separate random generator for rendering                
 
     def draw_click(self, action):
         if self.reward_policy is not None:
             return self.reward_policy(action)
 
         if self.click_probabilities == [None] * self.num_ads:
-            self.click_probabilities = [self.np_random.uniform() * 0.5 for i in range(self.num_ads)]
-            
-        time_of_day = self.get_current_time_of_day()
-        click_probability = self.get_ad_type_click_probability(self.types[action], time_of_day)
-        return np.random.random() < click_probability
+            self.click_probabilities = [self.ads_random.uniform() * 0.5 for i in range(self.num_ads)]
+
+        ad = self.ads[action]
+        return self.ads_random.random() < ad.click_probability
 
     def close(self):
         plt.close()

@@ -9,7 +9,7 @@ import gym_adserver
 
 class RandomAgent(object):
 
-    def __init__(self, action_space):
+    def __init__(self, action_space, ):
         self.name = "Random Agent"
         self.action_space = action_space
 
