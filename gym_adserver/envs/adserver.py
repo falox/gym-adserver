@@ -74,7 +74,7 @@ class AdServerEnv(gym.Env):
 
     def _generate_budget(self):
         # Your custom logic to generate budget based on ad_type
-        return self.ads_random.uniform(1000, 10000)
+        return self.ads_random.uniform(500, 1000)
 
     def get_current_time_of_day(self):
         _, impressions, _ = self.state
