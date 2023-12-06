@@ -8,9 +8,11 @@ from gym_adserver.agents.epsilon_greedy_agent import EpsilonGreedyAgent
 from gym_adserver.agents.random_agent import RandomAgent
 from gym_adserver.agents.softmax_agent import SoftmaxAgent
 from gym_adserver.agents.ucb1_agent import UCB1Agent
+from gym_adserver.agents.thompson_sampling_agent import TSAgent
+from gym_adserver.agents.etc_agent import ETCAgent
 
 def setup_environment(env_name, num_ads, time_series_frequency):
-    env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency)
+    env = gym.make(env_name, num_ads=num_ads, time_series_frequency=time_series_frequency, seed=seed)
     env.seed(args.seed)
     return env
 
@@ -40,8 +42,10 @@ if __name__ == '__main__':
     agents = [
         RandomAgent(action_space=action_space),
         SoftmaxAgent(seed=seed, beta=5, max_impressions=max_impressions),
-        UCB1Agent(action_space=action_space, seed=args.seed, c=2, max_impressions=max_impressions),
+        UCB1Agent(action_space=action_space, seed=seed, c=2, max_impressions=max_impressions),
         EpsilonGreedyAgent(seed=seed, epsilon=0.1),
+        TSAgent(action_space=action_space,seed=seed),
+        ETCAgent(action_space=action_space,seed=seed,exploration_rounds=100)
     ]
 
     envs = []
@@ -51,11 +55,11 @@ if __name__ == '__main__':
 
         # Simulation loop
         reward = 0
-        observation = env.reset(agent.name)
+        observation = env.reset(options={"scenario_name": agent.name})
         envs.append(env)
         for i in range(args.impressions):
             # Action/Feedback
-            ad_index = agent.act(observation=observation, reward=reward, done=False)
+            ad_index = agent.act(observation=observation, reward=reward, done=False, ad_budgets = env.budgets)
             observation, reward, _, _ = env.step(ad_index)
 
     # Render result for each agent (NOTE: close all to quit)

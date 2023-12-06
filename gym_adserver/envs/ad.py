@@ -1,8 +1,15 @@
 class Ad:
-    def __init__(self, id, impressions=0, clicks=0):
+    def __init__(self, click_probability, id, bid, budget, type, impressions=0, clicks=0):
         self.id = str(id)
         self.impressions = impressions
         self.clicks = clicks
+        self.bid = bid
+        self.budget = budget
+        self.type = type
+        self.click_probability = click_probability
+        
+    def update_click_probability(self, click_probability):
+        self.click_probability = click_probability
 
     def ctr(self):
         """Gets the CTR (Click-through rate) for this ad.
@@ -11,6 +18,10 @@ class Ad:
             float: Returns the CTR (between 0 and 1)
         """
         return 0.0 if self.impressions == 0 else float(self.clicks / self.impressions)
+    
+    @property
+    def revenue(self):
+        return self.clicks * self.bid
 
     def __repr__(self):
         return "({0}/{1})".format(self.clicks, self.impressions)

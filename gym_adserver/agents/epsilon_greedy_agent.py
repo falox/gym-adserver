@@ -16,15 +16,21 @@ class EpsilonGreedyAgent(object):
         self.np_random = RandomState(seed)
         self.epsilon = epsilon
 
-    def act(self, observation, reward, done):
+    def act(self, observation, reward, done, ad_budgets):
         ads, _, _ = observation
+        
+        # If all ad budgets are exhausted, return None
+        if all(budget <= 0 for budget in ad_budgets):
+            return None
 
         if np.random.uniform() < self.epsilon:
-            # Exploration: choose randomly
-            ad_index = self.np_random.randint(0, len(ads))
+            # Exploration: choose randomly among the ads with available budget
+            available_ads_indices = [i for i, budget in enumerate(ad_budgets) if budget > 0]
+            ad_index = self.np_random.choice(available_ads_indices)
         else:
-            # Exploitation: choose the ad with the highest CTR so far
-            ad_index = np.argmax([ad.ctr() for ad in ads])
+            # Exploitation: choose the ad with the highest CTR so far and available budget
+            available_ctrs = [ad.ctr() if ad_budgets[i] > 0 else float('-inf') for i, ad in enumerate(ads)]
+            ad_index = np.argmax(available_ctrs)
 
         return ad_index
 
@@ -54,7 +60,7 @@ if __name__ == '__main__':
     observation = env.reset(seed=args.seed, options={"scenario_name": agent.name})
     for i in range(args.impressions):
         # Action/Feedback
-        ad_index = agent.act(observation, reward, done)
+        ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
         
         # Render the current state

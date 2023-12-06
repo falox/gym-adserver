@@ -5,20 +5,21 @@ import math
 
 import numpy as np
 from numpy.random.mtrand import RandomState
+from scipy.stats import beta
 
 import gym
 from gym import wrappers, logger
 
 import gym_adserver
 
-class UCB1Agent(object):
-    def __init__(self, action_space, seed, c, max_impressions):
-        self.name = "UCB1 Agent"
-        self.values = [0.00] * action_space.n
-        self.np_random = RandomState(seed)
-        # Exploration parameter
-        self.c = c
-        self.max_impressions = max_impressions
+stationary=True
+
+class ETCAgent(object):
+    def __init__(self, action_space, seed, exploration_rounds):
+        self.name = "ETC Agent"
+        self.values = [0.0] * action_space.n
+        self.np_random = np.random.RandomState(seed)
+        self.exploration_rounds = exploration_rounds
         self.prev_action = None
         self.rewards = []
 
@@ -30,35 +31,26 @@ class UCB1Agent(object):
             return None
 
         # Update the value for the action of the previous act() call
-        if self.prev_action != None:            
+        if self.prev_action is not None:
             n = ads[self.prev_action].impressions
             value = self.values[self.prev_action]
             new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward
-            self.values[self.prev_action] = new_value    
-            self.rewards.append(reward)    
-        
-        # Test each ad once
-        ad_index = 0
+            self.values[self.prev_action] = new_value
+            self.rewards.append(reward)
+
+        # During the exploration phase, select each ad with available budget a fixed number of times
         for ad in ads:
-            if ad.impressions == 0 and ad_budgets[ad_index] > 0:
-                self.prev_action = ads.index(ad)
+            ad_index = ads.index(ad)
+            if ad.impressions < self.exploration_rounds and ad_budgets[ad_index] > 0:
+                self.prev_action = ad_index
                 return self.prev_action
-            ad_index += 1
 
-        # Compute the UCB values
-        ucb_values = [0.0] * len(self.values)
-        for i in range(len(ads)):
-            if ad_budgets[i] > 0:
-                exploitation = self.values[i]
-                exploration = self.c * math.sqrt((math.log(impressions)) / float(ads[i].impressions))
-                ucb_values[i] = exploitation + exploration
-            else:
-                ucb_values[i] = float('-inf')
-
-        # Select the max UCB value
-        self.prev_action = ucb_values.index(max(ucb_values))
+        # After the exploration phase, commit to the ad with the highest estimated value
+        # with a non-exhausted budget
+        available_values = [value if ad_budgets[i] > 0 else float('-inf') for i, value in enumerate(self.values)]
+        self.prev_action = available_values.index(max(available_values))
         return self.prev_action
-
+    
 def compute_regret(agent, env, num_impressions):
     """
     Computes the regret for the given agent in the gym-adserver environment.
@@ -82,13 +74,14 @@ def compute_regret(agent, env, num_impressions):
 
     return regret
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', default='AdServer-v0')
     parser.add_argument('--num_ads', type=int, default=10)
     parser.add_argument('--impressions', type=int, default=10000)
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--c', type=float, default=2)
+    parser.add_argument('--exploration_rounds', type=int, default=20)
     parser.add_argument('--output_file', default=None)
     args = parser.parse_args()
 
@@ -100,7 +93,7 @@ if __name__ == '__main__':
     env = gym.make(args.env, num_ads=args.num_ads, time_series_frequency=time_series_frequency)
 
     # Setup the agent
-    agent = UCB1Agent(env.action_space, args.seed, args.c, args.impressions)
+    agent = ETCAgent(env.action_space, args.seed, args.exploration_rounds)
 
     # Simulation loop
     reward = 0
@@ -110,8 +103,8 @@ if __name__ == '__main__':
         # Action/Feedback
         ad_index = agent.act(observation, reward, done, env.budgets)
         observation, reward, done, _ = env.step(ad_index)
-        UCB_agent_regret = compute_regret(agent, env, i)
-        print("Regret for UCB Sampling agent:", UCB_agent_regret)
+        ETC_agent_regret = compute_regret(agent, env, i)
+        print("Regret for ETC agent:", ETC_agent_regret)
         
         # Render the current state
         observedImpressions = observation[1]
