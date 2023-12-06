@@ -64,7 +64,7 @@ A window will open and show the agent's performance and the environment's state:
 
 The overall CTR increases over time as the agent learns what the best actions are.
 
-During the initialization, the environment assigns to each ad a "Probability" to be clicked. Such a probability is known by the environment only and will be used to draw the rewards during the simulation. Note that the probability is now modeled as a continous function depending on ad type and time (computed based on the number of impressions).
+During the initialization, the environment assigns to each ad a "Probability" to be clicked. Such a probability is known by the environment only and will be used to draw the rewards during the simulation. Note that the probability is modeled as a continous function depending on ad type and time (computed based on the number of impressions).
 
 The probability is also afftected by the user ad preference modeled by the User class. Favorable ads for certain group of users will receive bonus click probability.
 
